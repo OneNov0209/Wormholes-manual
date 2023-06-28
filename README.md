@@ -1,73 +1,53 @@
-# Wormholes-manual
-#!/bin/bash
-. ~/.bashrc
-mkdir -p .wormholes/wormholes
+<p align="center">
+  <img width="270" height="auto" src="https://user-images.githubusercontent.com/108969749/201534786-9fd914e1-fe09-456f-b56a-4082da2ae687.jpeg">
+</p>
 
-#update package
-sudo apt update && sudo apt list --upgradable && sudo apt upgrade -y
+### Spesifikasi Hardware :
+NODE  | CPU     | RAM      | SSD     |
+| ------------- | ------------- | ------------- | -------- |
+| Testnet | 4          | 8         | 120  |
 
-#install library
-sudo apt install curl tar wget clang pkg-config libssl-dev jq build-essential git make ncdu net-tools -y
 
-#install go
-ver="1.20.2" && \
-wget "https://golang.org/dl/go$ver.linux-amd64.tar.gz" && \
-sudo rm -rf /usr/local/go && \
-sudo tar -C /usr/local -xzf "go$ver.linux-amd64.tar.gz" && \
-rm "go$ver.linux-amd64.tar.gz" && \
-echo "export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin" >> $HOME/.bash_profile && \
-source $HOME/.bash_profile && \
-go version
+### Auto install
+```
+wget -O wormholes.sh https://raw.githubusercontent.com/dwentz-inc/node-testnet/main/wormholeschain/wormholes.sh && chmod +x wormholes.sh && ./wormholes.sh
+```
+### Monitoring
+```
+wget -O monitor.sh https://raw.githubusercontent.com/dwentz-inc/node-testnet/main/wormholeschain/monitor.sh && chmod +x monitor.sh && ./monitor.sh
+```
+### Next ? Become A Validator
+` membutuhkan 70k ERB untuk menjadi validator `
 
-#install binary
-cd $HOME
-git clone https://github.com/wormholes-org/wormholes
-cd wormholes
-git checkout v0.13.1
-sleep 5
+[Validator](https://wormholes.com/docs/Install/stake/index.html)
 
-#build binary
-cd wormholes
-go build -o wormholes cmd/wormholes/main.go
-mv wormholes /usr/local/bin
-
-#create service
-tee /etc/systemd/system/wormholesd.service > /dev/null <<EOF
-[Unit]
-Description=wormholes
-After=online.target
-[Service]
-Type=simple
-User=$USER
-WorkingDirectory=$HOME
-ExecStart= /usr/local/bin/wormholes \
-  --datadir $HOME/.wormholes \
-  --devnet \
-  --identity dwentz \
-  --mine \
-  --miner.threads 1 \
-  --rpc \
-  --rpccorsdomain "*" \
-  --rpcvhosts "*" \
-  --http \
-  --rpcaddr 127.0.0.1 \
-  --rpcport 8545 \
-  --port 30303 \
-  --maxpeers 50 \
-  --syncmode full
-Restart=on-failure
-RestartSec=5
-LimitNOFILE=4096
-[Install]
-WantedBy=multi-user.target
-EOF
-
-#start service
-sudo systemctl daemon-reload
-sudo systemctl enable wormholesd
-sudo systemctl restart wormholesd
-
-sleep 10
-
-NODE_KEY=$(cat $HOME/.wormholes/wormholes/nodekey)
-echo -e "Your privatekey: \e[32m$NODE_KEY\e[39m"
+### Node Info
+ * check versi node
+```
+wormholes version
+```
+ * check logs node
+```
+journalctl -fu wormholesd -o cat
+```
+  * check private key
+```
+cat .wormholes/wormholes/nodekey
+```
+`oh iya ini harus edit privatekey secara manual dan tanpa 0X, hapus dan pastekan private key lalu restart node`
+```
+nano .wormholes/wormholes/nodekey
+```
+ * restart node
+```
+systemctl restart wormholesd
+```
+### Hapus Node
+```
+systemctl stop wormholesd
+systemctl disable wormholesd
+rm -rf root/usr/local/bin/wormholes
+rm -rf wormholes
+rm -rf wormholes.sh
+rm -rf .wormholes
+```
